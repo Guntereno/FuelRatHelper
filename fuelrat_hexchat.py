@@ -5,7 +5,7 @@ import os
 import sys
 from tkinter import Tk
 
-__module_name__ = "fuelrat_hexchat"
+__module_name__ = "fuelrat_helper_hexchat"
 __module_version__ = "1.0"
 __module_description__ = "Fuel Rat Helper"
 
@@ -95,4 +95,4 @@ hexchat.hook_server("PRIVMSG", handle_privmsg)
 hexchat.hook_command("FR_LOG", handle_fr_log, help=" /fr_log <'true'/'false'>: Enable or disable FuelRat helper logging.")
 hexchat.hook_command("FR_CLIP", handle_fr_clip, help=" /fr_clip <'true'/'false'>: Enable or disable copying system name to clipboard.")
 
-set_logging_enabled(True)
+#set_logging_enabled(True)
