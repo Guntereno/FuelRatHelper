@@ -1,8 +1,11 @@
 import datetime
+from pydoc import doc
 import hexchat
 import json
 import os
 import sys
+import threading
+import winsound
 from tkinter import Tk
 
 __module_name__ = "fuelrat_helper_hexchat"
@@ -14,19 +17,26 @@ path = os.path.join(hexchat.get_info("configdir"), "addons")
 if path not in sys.path:
     sys.path.append(path)
 
+__alert_sound = os.path.join(path, "alert.wav")
+
 import rat_lib
 
-_clipping_enabled = True
+_clipping_format = "nsc"
+_separator = "|"
+_platform = "PC"
 
 def copy_to_clipboard(line):
-	global _clipping_enabled
-	if _clipping_enabled:
+	if _clipping_format is not None:
 		r = Tk()
 		r.withdraw()
 		r.clipboard_clear()
 		r.clipboard_append(line)
 		r.update()
 		r.destroy()
+
+def play_alert():
+	if __alert_sound:
+		winsound.PlaySound(__alert_sound, winsound.SND_FILENAME ^ winsound.SND_ASYNC)
 
 def handle_privmsg(word, word_eol, userdata):
 	try:
@@ -42,9 +52,10 @@ def handle_privmsg(word, word_eol, userdata):
 			# Parse a case data from the message
 			case_data = rat_lib.parse_ratsignal(message)
 
-			# If found, dump the data and copy system to clipboard
-			if case_data:
-				copy_to_clipboard(case_data["system"])
+			# Handle if found, and it's for our platform
+			if case_data and (case_data["platform"] == _platform):
+				play_alert()
+				copy_to_clipboard(rat_lib.build_clip_string(_clipping_format, _separator, case_data))
 
 	except Exception as e:
 		error_str = "EXCEPTION: " + e
@@ -82,17 +93,62 @@ def handle_fr_log(word, word_eol, userdata):
 
 def handle_fr_clip(word, word_eol, userdata):
 	try:
-		global _clipping_enabled
+		global _clipping_format
 		if len(word) < 2:
 			raise Exception()
-		_clipping_enabled = parse_bool(word[1])
-		hexchat.prnt("Clipping " + ("enabled" if _clipping_enabled else "disabled"))
+		new_format = word[1]
+		for ch in format:
+			if not ch in rat_lib.formatters:
+				hexchat.prnt("Invalid format string! Character '" + ch + "' is not valid!")
+				raise Exception()
+		_clipping_format = new_format
+		hexchat.prnt("Clipping format '" + _clipping_format + "'")
 
 	except:
-		print("Usage: /fr_clip <'true'/'false'> (Current: '" + str(_clipping_enabled) + "')")
+		print("Usage: /fr_clip <format string> (Current: '" + _clipping_format + "')")
+
+def handle_fr_platform(word, word_eol, userdata):
+	try:
+		global _platform
+		if len(word) < 2:
+			raise Exception()
+		platform = word[1]
+		if platform in ["PC", "XP", "PS4"]:
+			_platform = platform
+			hexchat.prnt("Platform now " + _platform)
+		else:
+			hexchat.prnt("Invalid platform '" + platform + "'")
+			raise Exception()
+
+	except:
+		print("Usage: /fr_platform <'PC'/'XB'/'PS4'> (Current: '" + _platform + "')")
+
+def handle_fr_sound(word, word_eol, userdata):
+	try:
+		global __alert_sound
+		if len(word) < 2:
+			raise Exception()
+		path = word[1]
+		if os.path.isfile(path):
+			__alert_sound = path
+			hexchat.prnt("Sound set to '" + __alert_sound + "'")
+		else:
+			hexchat.prnt("Can't find file at path '" + path + "'")
+
+	except:
+		print("Usage: /fr_sound <'path'> (Current: '" + str(__alert_sound) + "')")
 
 hexchat.hook_server("PRIVMSG", handle_privmsg)
 hexchat.hook_command("FR_LOG", handle_fr_log, help=" /fr_log <'true'/'false'>: Enable or disable FuelRat helper logging.")
-hexchat.hook_command("FR_CLIP", handle_fr_clip, help=" /fr_clip <'true'/'false'>: Enable or disable copying system name to clipboard.")
+hexchat.hook_command("FR_CLIP", handle_fr_clip, help=" /fr_clip <'format'>: Specify format of clipped string (none to disable)\nc=casenum, s=systemname, n=clientname")
+hexchat.hook_command("FR_PLATFORM", handle_fr_platform, help=" /fr_platform <'PC'/'XB'/'PS4'>: Set platform for alerts.")
+hexchat.hook_command("FR_SOUND", handle_fr_sound, help=" /fr_sound <path>: Set the file to use as an alert tone.")
 
 #set_logging_enabled(True)
+
+def main_thread():
+	pass
+
+thread = threading.Thread(target=main_thread)
+thread.start()
+

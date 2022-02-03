@@ -13,5 +13,5 @@ for line in f:
 	message = signal["message"]
 	case = rat_lib.parse_ratsignal(signal["message"])
 	if case:
-		print(json.dumps(case))
+		print(rat_lib.build_clip_string("nsc", "|", case))
 
