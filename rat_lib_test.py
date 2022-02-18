@@ -6,12 +6,11 @@ import tempfile
 log_file = os.path.join(tempfile.gettempdir(), "ratirc.log")
 f = open(log_file, "r")
 for line in f:
-	try:
-		signal = json.loads(line)
-	except:
-		continue
-	message = signal["message"]
-	case = rat_lib.parse_ratsignal(signal["message"])
-	if case:
-		print(rat_lib.build_clip_string("nsc", "|", case))
-
+    try:
+        signal = json.loads(line)
+    except:
+        continue
+    message = signal["message"]
+    case = rat_lib.parse_ratsignal(signal["message"])
+    if case:
+        print(rat_lib.build_clip_string("nsc", "|", case))

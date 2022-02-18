@@ -21,6 +21,7 @@ def main():
         send_test_case(num)
         time.sleep(.5)
 
+
 def send_test_case(num):
     case = {}
     case["case"] = num
@@ -36,6 +37,7 @@ def send_test_case(num):
     case["nick"] = "Reno"
     case["signal"] = "PC_SIGNAL"
     rat_client.send_case_data(case)
+
 
 if __name__ == "__main__":
     main()
