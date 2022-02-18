@@ -7,6 +7,8 @@ import sys
 import threading
 import winsound
 from tkinter import Tk
+import requests
+import FuelRatHelper.rat_client as rat_client
 
 __module_name__ = "fuelrat_helper_hexchat"
 __module_version__ = "1.0"
@@ -15,7 +17,7 @@ __module_description__ = "Fuel Rat Helper"
 # The script folder isn't necessarily in the search path when running through HexChat
 path = os.path.join(hexchat.get_info("configdir"), "addons")
 if path not in sys.path:
-    sys.path.append(path)
+	sys.path.append(path)
 
 __alert_sound = os.path.join(path, "alert.wav")
 
@@ -24,6 +26,8 @@ import rat_lib
 _clipping_format = "nsc"
 _separator = "|"
 _platform = "PC"
+
+_server_url = 'http://localhost:8000'
 
 def copy_to_clipboard(line):
 	if _clipping_format is not None:
@@ -53,9 +57,13 @@ def handle_privmsg(word, word_eol, userdata):
 			case_data = rat_lib.parse_ratsignal(message)
 
 			# Handle if found, and it's for our platform
-			if case_data and (case_data["platform"] == _platform):
-				play_alert()
-				copy_to_clipboard(rat_lib.build_clip_string(_clipping_format, _separator, case_data))
+			if case_data:
+				if (case_data["platform"] == _platform):
+					play_alert()
+					copy_to_clipboard(rat_lib.build_clip_string(_clipping_format, _separator, case_data))
+
+				# Send to server
+				rat_client.send_case_data(case_data)
 
 	except Exception as e:
 		error_str = "EXCEPTION: " + e
