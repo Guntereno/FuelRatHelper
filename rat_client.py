@@ -1,6 +1,4 @@
-import json
 import requests
-import rat_client
 import time
 
 _server_url = 'http://localhost:8000'
@@ -8,7 +6,6 @@ _server_url = 'http://localhost:8000'
 
 def send_case_data(case_data):
     try:
-        content = json.dumps(case_data)
         r = requests.post(
             _server_url + '/ratsignal', json=case_data)
         print(r.text)
@@ -36,7 +33,7 @@ def send_test_case(num):
     case["locale"] = "en-gb"
     case["nick"] = "Reno"
     case["signal"] = "PC_SIGNAL"
-    rat_client.send_case_data(case)
+    send_case_data(case)
 
 
 if __name__ == "__main__":

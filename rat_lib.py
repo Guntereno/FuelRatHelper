@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 import os
 import re
@@ -44,10 +43,10 @@ _regex_standard = re.compile(
     u"""\u0002System:\u0002 \"(.+?)\"\u001d """				# System name
     u"""\((.+?)\)\u001d """									# System desc
     u"""(?:\u000307\((.+?)\)\u0003 )?"""					# Permit (optional)
-    u"""\u2013 \u0002Language:\u0002 (.+?(?: \(.+?\))?) """  # Language
+    u"""\u2013 \u0002Language:\u0002 (.+?(?: \(.+?\))?) """	# Language
     u"""\((.+?)\) """										# Locale
     u"""(?:\u2013 \u0002Nick:\u0002 (.*?) )?"""				# Nick (optional)
-    u"""\((.*?\))$"""										# Signal
+    u"""\((.*?)\)$"""										# Signal
 )
 
 
@@ -122,7 +121,7 @@ def main():
     num_signals = 0
     num_detected = 0
 
-    with open("output.log") as fp:
+    with open(log_path()) as fp:
         lines = fp.readlines()
         for line in lines:
             wrote = False

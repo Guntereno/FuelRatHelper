@@ -1,6 +1,3 @@
-import rat_lib
-import datetime
-from pydoc import doc
 import hexchat
 import json
 import os
@@ -8,26 +5,27 @@ import sys
 import threading
 import winsound
 from tkinter import Tk
-import requests
-import FuelRatHelper.rat_client as rat_client
+
+# The script folder isn't necessarily in the search path when running through HexChat
+# So we need to add it to include our own modules below.
+path = os.path.join(hexchat.get_info("configdir"), "addons")
+if path not in sys.path:
+    sys.path.append(path)
+
+import rat_lib
+import rat_client
+
 
 __module_name__ = "fuelrat_helper_hexchat"
 __module_version__ = "1.0"
 __module_description__ = "Fuel Rat Helper"
 
-# The script folder isn't necessarily in the search path when running through HexChat
-path = os.path.join(hexchat.get_info("configdir"), "addons")
-if path not in sys.path:
-    sys.path.append(path)
 
 __alert_sound = os.path.join(path, "alert.wav")
-
 
 _clipping_format = "nsc"
 _separator = "|"
 _platform = "PC"
-
-_server_url = 'http://localhost:8000'
 
 
 def copy_to_clipboard(line):
@@ -52,7 +50,7 @@ def handle_privmsg(word, word_eol, userdata):
         recipient = word[2]
         message = word_eol[3]
 
-        if (recipient == "#fuelrats") and ("MechaSqueak[BOT]" in sender):
+        if ("MechaSqueak[BOT]" in sender):
             # Dump json to the logs
             event_json = json.dumps(
                 {"sender": sender, "recipient": recipient, "message": message})
