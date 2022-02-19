@@ -20,12 +20,18 @@ __module_name__ = "fuelrat_helper_hexchat"
 __module_version__ = "1.0"
 __module_description__ = "Fuel Rat Helper"
 
+fr_log_usage = " /fr_log <'true'/'false'>: Enable or disable FuelRat helper logging."
+fr_clip_usage = " /fr_clip <'format'>: Specify format of clipped string (none to disable)\nc=casenum, s=systemname, n=clientname"
+fr_platform_usage = " /fr_platform <'ALL'/'PC'/'XB'/'PS4'>: Set platform for alerts."
+fr_sound_usage = " /fr_sound <path>: Set the file to use as an alert tone."
+fr_game_version_usage = " /fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>: Set which version in which cases should trigger alerts."
 
 __alert_sound = os.path.join(path, "alert.wav")
 
 _clipping_format = "nsc"
 _separator = "|"
 _platform = "PC"
+_game_version = "ALL"
 
 
 def copy_to_clipboard(line):
@@ -61,10 +67,7 @@ def handle_privmsg(word, word_eol, userdata):
 
             # Handle if found, and it's for our platform
             if case_data:
-                if (case_data["platform"] == _platform):
-                    play_alert()
-                    copy_to_clipboard(rat_lib.build_clip_string(
-                        _clipping_format, _separator, case_data))
+                trigger_alert(case_data)
 
                 # Send to server
                 rat_client.send_case_data(case_data)
@@ -75,6 +78,19 @@ def handle_privmsg(word, word_eol, userdata):
         rat_lib.append_to_log(error_str)
 
     return hexchat.EAT_NONE
+
+def trigger_alert(case_data):
+    if (_platform != "ALL") and (case_data["platform"] != _platform):
+        return
+
+    if (_game_version != "ALL"):
+        case_game_version = "ODYSSEY" if case_data["odyssey"] else "HORIZONS"
+        if (case_game_version != _game_version):
+            return
+
+    play_alert()
+    copy_to_clipboard(rat_lib.build_clip_string(
+                    _clipping_format, _separator, case_data))
 
 
 def parse_bool(word):
@@ -104,8 +120,7 @@ def handle_fr_log(word, word_eol, userdata):
         set_logging_enabled(val)
 
     except:
-        print("Usage: /fr_log <'true'/'false'> (Current: '" +
-              str(rat_lib.get_logging_enabled()) + "')")
+        print(f"Usage: {fr_log_usage}")
 
 
 def handle_fr_clip(word, word_eol, userdata):
@@ -123,7 +138,7 @@ def handle_fr_clip(word, word_eol, userdata):
         hexchat.prnt("Clipping format '" + _clipping_format + "'")
 
     except:
-        print("Usage: /fr_clip <format string> (Current: '" + _clipping_format + "')")
+        print(f"Usage: {fr_clip_usage}")
 
 
 def handle_fr_platform(word, word_eol, userdata):
@@ -131,8 +146,8 @@ def handle_fr_platform(word, word_eol, userdata):
         global _platform
         if len(word) < 2:
             raise Exception()
-        platform = word[1]
-        if platform in ["PC", "XP", "PS4"]:
+        platform = word[1].upper()
+        if platform in ["ALL", "PC", "XP", "PS4"]:
             _platform = platform
             hexchat.prnt("Platform now " + _platform)
         else:
@@ -140,7 +155,7 @@ def handle_fr_platform(word, word_eol, userdata):
             raise Exception()
 
     except:
-        print("Usage: /fr_platform <'PC'/'XB'/'PS4'> (Current: '" + _platform + "')")
+        print(f"Usage: {fr_platform_usage}")
 
 
 def handle_fr_sound(word, word_eol, userdata):
@@ -156,18 +171,32 @@ def handle_fr_sound(word, word_eol, userdata):
             hexchat.prnt("Can't find file at path '" + path + "'")
 
     except:
-        print("Usage: /fr_sound <'path'> (Current: '" + str(__alert_sound) + "')")
+        print(f"Usage: {fr_sound_usage}")
+
+def handle_fr_game_version(word, word_eol, userdata):
+    try:
+        global _platform
+        if len(word) < 2:
+            raise Exception()
+        game_version = word[1].upper()
+        if game_version in ["ALL", "HORIZONS", "ODYSSEY"]:
+            global _game_version
+            _game_version = game_version
+            hexchat.prnt("Game version now " + _game_version)
+        else:
+            hexchat.prnt("Invalid game version '" + game_version + "'")
+            raise Exception()
+
+    except:
+        print(f"Usage: {fr_game_version_usage}")
 
 
 hexchat.hook_server("PRIVMSG", handle_privmsg)
-hexchat.hook_command("FR_LOG", handle_fr_log,
-                     help=" /fr_log <'true'/'false'>: Enable or disable FuelRat helper logging.")
-hexchat.hook_command("FR_CLIP", handle_fr_clip,
-                     help=" /fr_clip <'format'>: Specify format of clipped string (none to disable)\nc=casenum, s=systemname, n=clientname")
-hexchat.hook_command("FR_PLATFORM", handle_fr_platform,
-                     help=" /fr_platform <'PC'/'XB'/'PS4'>: Set platform for alerts.")
-hexchat.hook_command("FR_SOUND", handle_fr_sound,
-                     help=" /fr_sound <path>: Set the file to use as an alert tone.")
+hexchat.hook_command("FR_LOG", handle_fr_log, help=fr_log_usage)
+hexchat.hook_command("FR_CLIP", handle_fr_clip, help=fr_clip_usage)
+hexchat.hook_command("FR_PLATFORM", handle_fr_platform, help=fr_platform_usage)
+hexchat.hook_command("FR_SOUND", handle_fr_sound, help=fr_sound_usage)
+hexchat.hook_command("FR_GAME_VERSION", handle_fr_game_version, help=fr_game_version_usage)
 
 # set_logging_enabled(True)
 

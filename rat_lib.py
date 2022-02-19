@@ -37,7 +37,7 @@ _regex_standard = re.compile(
     u"""^:\u0002\u000300,07RATSIGNAL\u0003\u0002 """
     u"""Case\u0002 #(.+?)\u0002 """							# Case number
     u"""\u0002\u0003\d\d(.+?)\u0003\u0002 """				# Platform
-    u"""(\(\u000304Code Red\u0003\) )?"""					# Code Red
+    u"""(\(\u000304Code Red\u0003\) )?"""					# Code Red (optional)
     u"""(\(\u000307Odyssey\u0003\) )?"""					# Odyssey (optional)
     u"""\u2013 \u0002CMDR\u0002 (.+?)\u2013 """				# CMDR name
     u"""\u0002System:\u0002 \"(.+?)\"\u001d """				# System name
