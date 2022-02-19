@@ -17,7 +17,7 @@ import rat_client
 
 
 __module_name__ = "fuelrat_helper_hexchat"
-__module_version__ = "1.0"
+__module_version__ = "1.1"
 __module_description__ = "Fuel Rat Helper"
 
 fr_log_usage = " /fr_log <'true'/'false'>: Enable or disable FuelRat helper logging."
@@ -120,7 +120,7 @@ def handle_fr_log(word, word_eol, userdata):
         set_logging_enabled(val)
 
     except:
-        print(f"Usage: {fr_log_usage}")
+        print(f"Usage: {fr_log_usage} (Current: '{rat_lib.get_logging_enabled()}')")
 
 
 def handle_fr_clip(word, word_eol, userdata):
@@ -138,7 +138,7 @@ def handle_fr_clip(word, word_eol, userdata):
         hexchat.prnt("Clipping format '" + _clipping_format + "'")
 
     except:
-        print(f"Usage: {fr_clip_usage}")
+        print(f"Usage: {fr_clip_usage} (Current: '{_clipping_format}')")
 
 
 def handle_fr_platform(word, word_eol, userdata):
@@ -155,7 +155,7 @@ def handle_fr_platform(word, word_eol, userdata):
             raise Exception()
 
     except:
-        print(f"Usage: {fr_platform_usage}")
+        print(f"Usage: {fr_platform_usage} (Current: '{_platform}')")
 
 
 def handle_fr_sound(word, word_eol, userdata):
@@ -171,7 +171,7 @@ def handle_fr_sound(word, word_eol, userdata):
             hexchat.prnt("Can't find file at path '" + path + "'")
 
     except:
-        print(f"Usage: {fr_sound_usage}")
+        print(f"Usage: {fr_sound_usage}  (Current: '{__alert_sound}')")
 
 def handle_fr_game_version(word, word_eol, userdata):
     try:
@@ -188,7 +188,7 @@ def handle_fr_game_version(word, word_eol, userdata):
             raise Exception()
 
     except:
-        print(f"Usage: {fr_game_version_usage}")
+        print(f"Usage: {fr_game_version_usage} (Current: '{_game_version}')")
 
 
 hexchat.hook_server("PRIVMSG", handle_privmsg)
