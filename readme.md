@@ -22,9 +22,13 @@ up the ratsignal. There are a couple of commands which control the behaviour of 
 plugin:
 
 ```/fr_log <'true'/'false'>```: Enable or disable FuelRat helper logging.
+
 ```/fr_clip <'format'>```: Specify format of clipped string (none to disable)\nc=casenum, s=systemname, n=clientname
+
 ```/fr_platform <'ALL'/'PC'/'XB'/'PS4'>```: Set platform for alerts."
+
 ```/fr_sound <path>```: Set the file to use as an alert tone."
+
 ```/fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>```: Set which version in which cases should trigger alerts."
 
 #### Logging
