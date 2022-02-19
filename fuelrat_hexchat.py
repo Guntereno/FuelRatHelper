@@ -12,8 +12,9 @@ path = os.path.join(hexchat.get_info("configdir"), "addons")
 if path not in sys.path:
     sys.path.append(path)
 
-import rat_lib
+import rat_config
 import rat_client
+import rat_lib
 
 
 __module_name__ = "fuelrat_helper_hexchat"
@@ -26,28 +27,29 @@ fr_platform_usage = " /fr_platform <'ALL'/'PC'/'XB'/'PS4'>: Set platform for ale
 fr_sound_usage = " /fr_sound <path>: Set the file to use as an alert tone."
 fr_game_version_usage = " /fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>: Set which version in which cases should trigger alerts."
 
-__alert_sound = os.path.join(path, "alert.wav")
+config_logging_enabled = 'logging_enabled'
+config_clipping_format = 'clipping_format'
+config_platform = 'platform'
+config_game_version = 'game_version'
+config_alert_sound = 'alert_sound'
 
-_clipping_format = "nsc"
 _separator = "|"
-_platform = "PC"
-_game_version = "ALL"
 
 
 def copy_to_clipboard(line):
-    if _clipping_format is not None:
-        r = Tk()
-        r.withdraw()
-        r.clipboard_clear()
-        r.clipboard_append(line)
-        r.update()
-        r.destroy()
+    r = Tk()
+    r.withdraw()
+    r.clipboard_clear()
+    r.clipboard_append(line)
+    r.update()
+    r.destroy()
 
 
 def play_alert():
-    if __alert_sound:
+    alert_sound = rat_config.get(config_alert_sound)
+    if alert_sound:
         winsound.PlaySound(
-            __alert_sound, winsound.SND_FILENAME ^ winsound.SND_ASYNC)
+            alert_sound, winsound.SND_FILENAME ^ winsound.SND_ASYNC)
 
 
 def handle_privmsg(word, word_eol, userdata):
@@ -79,18 +81,24 @@ def handle_privmsg(word, word_eol, userdata):
 
     return hexchat.EAT_NONE
 
+
 def trigger_alert(case_data):
-    if (_platform != "ALL") and (case_data["platform"] != _platform):
+    platform = rat_config.get(config_platform)
+    if (platform != "ALL") and (case_data["platform"] != platform):
         return
 
-    if (_game_version != "ALL"):
+    game_version = rat_config.get(config_game_version)
+    if (game_version != "ALL"):
         case_game_version = "ODYSSEY" if case_data["odyssey"] else "HORIZONS"
-        if (case_game_version != _game_version):
+        if (case_game_version != game_version):
             return
 
     play_alert()
-    copy_to_clipboard(rat_lib.build_clip_string(
-                    _clipping_format, _separator, case_data))
+
+    clipping_format = rat_config.get(config_clipping_format)
+    if clipping_format is not None:
+        copy_to_clipboard(rat_lib.build_clip_string(
+            clipping_format, _separator, case_data))
 
 
 def parse_bool(word):
@@ -106,6 +114,7 @@ def parse_bool(word):
 
 def set_logging_enabled(val):
     val = rat_lib.set_logging_enabled(val)
+    rat_config.set(config_logging_enabled, val)
     if(val):
         hexchat.prnt("Logging to '" + rat_lib.log_path())
     else:
@@ -120,90 +129,102 @@ def handle_fr_log(word, word_eol, userdata):
         set_logging_enabled(val)
 
     except:
-        print(f"Usage: {fr_log_usage} (Current: '{rat_lib.get_logging_enabled()}')")
+        print(
+            f"Usage: {fr_log_usage} (Current: '{rat_lib.get_logging_enabled()}')")
 
 
 def handle_fr_clip(word, word_eol, userdata):
     try:
-        global _clipping_format
         if len(word) < 2:
             raise Exception()
         new_format = word[1]
-        for ch in format:
+        for ch in new_format:
             if not ch in rat_lib.formatters:
                 hexchat.prnt("Invalid format string! Character '" +
                              ch + "' is not valid!")
                 raise Exception()
-        _clipping_format = new_format
-        hexchat.prnt("Clipping format '" + _clipping_format + "'")
+        rat_config.set(config_clipping_format, new_format)
+        hexchat.prnt("Clipping format '" + new_format + "'")
 
     except:
-        print(f"Usage: {fr_clip_usage} (Current: '{_clipping_format}')")
+        print(
+            f"Usage: {fr_clip_usage} (Current: '{rat_config.get(config_clipping_format)}')")
 
 
 def handle_fr_platform(word, word_eol, userdata):
     try:
-        global _platform
         if len(word) < 2:
             raise Exception()
         platform = word[1].upper()
         if platform in ["ALL", "PC", "XP", "PS4"]:
-            _platform = platform
-            hexchat.prnt("Platform now " + _platform)
+            rat_config('platform', platform)
+            hexchat.prnt("Platform now " + platform)
         else:
             hexchat.prnt("Invalid platform '" + platform + "'")
             raise Exception()
 
     except:
-        print(f"Usage: {fr_platform_usage} (Current: '{_platform}')")
+        print(
+            f"Usage: {fr_platform_usage} (Current: '{rat_config.get(config_platform)}')")
 
 
 def handle_fr_sound(word, word_eol, userdata):
     try:
-        global __alert_sound
         if len(word) < 2:
             raise Exception()
         path = word[1]
         if os.path.isfile(path):
-            __alert_sound = path
-            hexchat.prnt("Sound set to '" + __alert_sound + "'")
+            rat_config.set(config_alert_sound, path)
+            hexchat.prnt("Sound set to '" + path + "'")
         else:
             hexchat.prnt("Can't find file at path '" + path + "'")
 
     except:
-        print(f"Usage: {fr_sound_usage}  (Current: '{__alert_sound}')")
+        print(
+            f"Usage: {fr_sound_usage}  (Current: '{rat_config.get(config_alert_sound)}')")
+
 
 def handle_fr_game_version(word, word_eol, userdata):
     try:
-        global _platform
         if len(word) < 2:
             raise Exception()
         game_version = word[1].upper()
         if game_version in ["ALL", "HORIZONS", "ODYSSEY"]:
-            global _game_version
-            _game_version = game_version
-            hexchat.prnt("Game version now " + _game_version)
+            rat_config.set(config_game_version, game_version)
+            hexchat.prnt("Game version now " + game_version)
         else:
             hexchat.prnt("Invalid game version '" + game_version + "'")
             raise Exception()
 
     except:
-        print(f"Usage: {fr_game_version_usage} (Current: '{_game_version}')")
-
-
-hexchat.hook_server("PRIVMSG", handle_privmsg)
-hexchat.hook_command("FR_LOG", handle_fr_log, help=fr_log_usage)
-hexchat.hook_command("FR_CLIP", handle_fr_clip, help=fr_clip_usage)
-hexchat.hook_command("FR_PLATFORM", handle_fr_platform, help=fr_platform_usage)
-hexchat.hook_command("FR_SOUND", handle_fr_sound, help=fr_sound_usage)
-hexchat.hook_command("FR_GAME_VERSION", handle_fr_game_version, help=fr_game_version_usage)
-
-# set_logging_enabled(True)
+        print(
+            f"Usage: {fr_game_version_usage} (Current: '{rat_config.get(config_game_version)}')")
 
 
 def main_thread():
     pass
 
 
-thread = threading.Thread(target=main_thread)
-thread.start()
+def init():
+    rat_config.init(default={
+        config_logging_enabled: False,
+        config_clipping_format: 's',
+        config_platform: 'PC',
+        config_game_version: 'ALL',
+        config_alert_sound: os.path.join(path, "alert.wav")
+    })
+
+    set_logging_enabled(rat_config.get(config_logging_enabled))
+
+    hexchat.hook_server("PRIVMSG", handle_privmsg)
+    hexchat.hook_command("FR_LOG", handle_fr_log, help=fr_log_usage)
+    hexchat.hook_command("FR_CLIP", handle_fr_clip, help=fr_clip_usage)
+    hexchat.hook_command("FR_PLATFORM", handle_fr_platform, help=fr_platform_usage)
+    hexchat.hook_command("FR_SOUND", handle_fr_sound, help=fr_sound_usage)
+    hexchat.hook_command(
+        "FR_GAME_VERSION", handle_fr_game_version, help=fr_game_version_usage)
+
+    # thread = threading.Thread(target=main_thread)
+    # thread.start()
+
+init()
