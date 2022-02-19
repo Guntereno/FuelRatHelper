@@ -7,7 +7,7 @@ _server_url = 'http://localhost:8000'
 def send_case_data(case_data):
     try:
         r = requests.post(
-            _server_url + '/ratsignal', json=case_data)
+            _server_url + '/case', json=case_data)
         print(r.text)
     except:
         print("Failed to post case to FuelRatVA server!")
