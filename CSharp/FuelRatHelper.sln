@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31829.152
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RatVA", "RatVA\RatVA.csproj", "{89B33BAF-C284-41D4-9895-205525825CDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RatConsole", "RatConsole\RatConsole.csproj", "{E3701BD6-D5BD-463F-954B-71A7865AA933}"
+	ProjectSection(ProjectDependencies) = postProject
+		{89B33BAF-C284-41D4-9895-205525825CDF} = {89B33BAF-C284-41D4-9895-205525825CDF}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89B33BAF-C284-41D4-9895-205525825CDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89B33BAF-C284-41D4-9895-205525825CDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89B33BAF-C284-41D4-9895-205525825CDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89B33BAF-C284-41D4-9895-205525825CDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3701BD6-D5BD-463F-954B-71A7865AA933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3701BD6-D5BD-463F-954B-71A7865AA933}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3701BD6-D5BD-463F-954B-71A7865AA933}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3701BD6-D5BD-463F-954B-71A7865AA933}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {43C77CF7-E7CE-43BA-B302-688822626C7B}
+	EndGlobalSection
+EndGlobal
