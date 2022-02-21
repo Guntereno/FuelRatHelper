@@ -20,8 +20,12 @@ namespace RatVA
 		private static Mutex s_mutex = new Mutex();
 		private static Dictionary<int, CaseData> s_cases = new Dictionary<int, CaseData>();
 
-		public static void Start()
+		private static string s_httpRoot = "";
+
+		public static void Start(string httpRoot)
 		{
+			s_httpRoot = httpRoot;
+
 			if (s_serverRunning)
 			{
 				return;
@@ -98,40 +102,45 @@ namespace RatVA
 
 		private static async Task HandleGet(HttpListenerRequest request, HttpListenerResponse response)
 		{
-			bool foundResource = false;
+			try
+			{
+				string requestPath = request.Url.AbsolutePath;
 
-			string requestPath = request.Url.AbsolutePath;
-			if (requestPath == "/")
-			{
-				requestPath = "/index.htm";
-			}
-			
-			string httpRoot = Path.GetFullPath(".\\HttpRoot");
-			string resourcePath = httpRoot + requestPath;
-
-			if(resourcePath.IsSubDirectoryOf(httpRoot) && (File.Exists(resourcePath)))
-			{
-				await SendFile(response, resourcePath);
-				foundResource = true;
-			}
-			else
-			{
 				switch (requestPath)
 				{
 					case "/cases":
 						await SendCases(response);
-						foundResource = true;
-						break;
+						return;
 
 					default:
 						// Do nothing;
 						break;
 				}
-			}
 
-			if(!foundResource)
+				
+				if (requestPath == "/")
+				{
+					requestPath = "/index.htm";
+				}
+			
+				string httpRoot = Path.GetFullPath(s_httpRoot);
+				string resourcePath = httpRoot + requestPath;
+
+				if(!resourcePath.IsSubDirectoryOf(httpRoot))
+				{
+					throw new Exception("Invalid path!");
+				}
+				
+				if(!File.Exists(resourcePath))
+				{
+					throw new FileNotFoundException(resourcePath);
+				}
+
+				await SendFile(response, resourcePath);
+			}
+			catch(Exception e)
 			{
-				await SendError(response, 404, "Endpoint not found!");
+				await SendError(response, 404, $"{e}");
 			}
 		}
 

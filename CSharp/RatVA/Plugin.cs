@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using System;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace RatVA
@@ -30,7 +32,10 @@ namespace RatVA
 
 			Log("FuelRatVA Initialised.");
 
-			CommsServer.Start();
+			string assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			string httpRoot = assemblyFolder + "\\HttpRoot";
+
+			CommsServer.Start(httpRoot);
 
 			_mainThread = new Thread(MainThread);
 			_mainThread.Start();

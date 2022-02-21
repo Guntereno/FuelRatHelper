@@ -4,7 +4,7 @@
 	{
 		static void Main(string[] args)
 		{
-			RatVA.CommsServer.Start();
+			RatVA.CommsServer.Start(".\\HttpRoot");
 		}
 	}
 }
