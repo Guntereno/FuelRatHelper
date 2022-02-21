@@ -10,7 +10,15 @@ def send_case_data(case_data):
             _server_url + '/case', json=case_data)
         print(r.text)
     except:
-        print("Failed to post case to FuelRatVA server!")
+        print("Failed to post case!")
+
+def delete_case(case_data):
+    try:
+        r = requests.delete(
+            _server_url + f'/case', json=case_data)
+        print(r.text)
+    except:
+        print("Failed to delete case!")
 
 
 def main():

@@ -1,12 +1,13 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Text;
-using System.Net;
-using System.Threading.Tasks;
-using System.IO;
 using System.Collections.Generic;
-using System.Threading;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
+using Newtonsoft.Json.Linq;
 
 namespace RatVA
 {
@@ -97,6 +98,8 @@ namespace RatVA
 
 		private static async Task HandleGet(HttpListenerRequest request, HttpListenerResponse response)
 		{
+			bool foundResource = false;
+
 			string requestPath = request.Url.AbsolutePath;
 			if (requestPath == "/")
 			{
@@ -106,25 +109,29 @@ namespace RatVA
 			string httpRoot = Path.GetFullPath(".\\HttpRoot");
 			string resourcePath = httpRoot + requestPath;
 
-			if(!resourcePath.IsSubDirectoryOf(httpRoot))
-			{
-				throw new Exception("Requested asset is outside of http root!");
-			}
-
-			if (File.Exists(resourcePath))
+			if(resourcePath.IsSubDirectoryOf(httpRoot) && (File.Exists(resourcePath)))
 			{
 				await SendFile(response, resourcePath);
-				return;
+				foundResource = true;
+			}
+			else
+			{
+				switch (requestPath)
+				{
+					case "/cases":
+						await SendCases(response);
+						foundResource = true;
+						break;
+
+					default:
+						// Do nothing;
+						break;
+				}
 			}
 
-			switch (requestPath)
+			if(!foundResource)
 			{
-				case "/cases":
-					await SendCases(response);
-					break;
-				default:
-					await SendError(response, 404, "Endpoint not found!");
-					break;
+				await SendError(response, 404, "Endpoint not found!");
 			}
 		}
 
@@ -161,7 +168,33 @@ namespace RatVA
 
 		private static async Task HandleDeleteCase(HttpListenerRequest request, HttpListenerResponse response)
 		{
-			await Task.FromException(new NotImplementedException());
+			bool foundResource = false;
+
+			string json = ReadTextContent(request);
+			Console.WriteLine(json);
+
+			JObject jObject = JObject.Parse(json);
+			if(jObject.TryGetValue("case", out JToken? value))
+			{
+				int caseId = (int)value;
+
+				s_mutex.WaitOne();
+				if (s_cases.ContainsKey(caseId))
+				{
+					s_cases.Remove(caseId);
+					foundResource = true;
+				}
+				s_mutex.ReleaseMutex();
+			}
+
+			if(foundResource)
+			{
+				await SendJson(response, "{\"status\": \"deleted\"}");
+			}
+			else
+			{
+				await SendError(response, 404, "Endpoint not found!");
+			}
 		}
 
 		private static async Task SendError(HttpListenerResponse response, int statusCode, string message)

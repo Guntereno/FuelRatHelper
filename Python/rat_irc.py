@@ -52,25 +52,29 @@ def play_alert():
 def handle_message(sender, recipient, message):
     try:
         if ("MechaSqueak[BOT]" in sender):
-            # Dump json to the logs
-            event_json = json.dumps(
-                {"sender": sender, "recipient": recipient, "message": message})
-            rat_lib.append_to_log(event_json)
-
-            # Parse a case data from the message
-            case_data = rat_lib.parse_ratsignal(message)
-
-            # Handle if found, and it's for our platform
-            if case_data:
-                trigger_alert(case_data)
-
-                # Send to server
-                rat_client.send_case_data(case_data)
+            handle_spatch_message(sender, recipient, message)
 
     except Exception as e:
         error_str = "EXCEPTION: " + e
         console_write(error_str)
         rat_lib.append_to_log(error_str)
+
+
+def handle_spatch_message(sender, recipient, message):
+    event_json = json.dumps(
+        {"sender": sender, "recipient": recipient, "message": message})
+    rat_lib.append_to_log(event_json)
+
+    case_data = rat_lib.parse_ratsignal(message)
+    if case_data:
+        trigger_alert(case_data)
+        rat_client.send_case_data(case_data)
+        return
+
+    case_data = rat_lib.parse_case_close(message)
+    if case_data:
+        rat_client.delete_case(case_data)
+        return
 
 
 def trigger_alert(case_data):

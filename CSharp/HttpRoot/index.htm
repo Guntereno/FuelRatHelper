@@ -8,8 +8,9 @@
 </head>
 
 <body>
-    <div id="Cases"></div>
-    <script type="text/javascript" language="javascript">
+    <div id="Wrap">
+        <div id="Cases" class="Panel"></div>
+        <script type="text/javascript" language="javascript">
             function reloadCases() {
                 $('#Cases').load('cases', function (response, status, xhr) {
                     if (status == 'error') {
@@ -17,8 +18,10 @@
                     }
                 });
             }
+            reloadCases()
             setInterval(reloadCases, 3000);
-    </script>
+        </script>
+    </div>
 </body>
 
 </html>

@@ -50,10 +50,10 @@ _regex_standard = re.compile(
 )
 
 
-def parse_ratsignal_standard(signal):
-    match = re.search(_regex_standard, signal)
+def parse_ratsignal_standard(message):
+    match = re.search(_regex_standard, message)
     if match is None:
-        if 'RATSIGNAL' in signal:
+        if 'RATSIGNAL' in message:
             append_to_log(f'ERROR: Failed to parse line containing RATSIGNAL!')
         return None
 
@@ -115,6 +115,25 @@ def remove_special_characters(input):
         if ord(ch) >= 0x20:
             output += ch
     return output
+
+
+# Example of closed case message from Mecha Squeak:
+# Closed case #7 (remineitor 1884) to Lev. Do the paperwork: https://t.fuelr.at/2zat
+_regex_closed_case = re.compile(
+    u"""^:Closed case #(\d+?) \((.+?)\) to (.+?)\. Do the paperwork: (https:\/\/t\.fuelr\.at\/.+)$""")
+
+def parse_case_close(message):
+    match = re.search(_regex_closed_case, message)
+    if match is None:
+        return None
+
+    result = {}
+    result["case"] = int(match.group(1))
+    result["client"] = match.group(2)
+    result["rat"] = match.group(3)
+    result["paperwork"] = match.group(4)
+
+    return result
 
 
 def main():

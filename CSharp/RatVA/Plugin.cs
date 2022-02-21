@@ -9,7 +9,7 @@ namespace RatVA
 	{
 		public static string VA_DisplayName()
 		{
-			return "Fuel Rat VA - v1.0.0";
+			return "Fuel Rat VA - v1.0.1";
 		}
 
 		public static string VA_DisplayInfo()
