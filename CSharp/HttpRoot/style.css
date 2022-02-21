@@ -1,0 +1,35 @@
+:root {
+	--color-positive: rgb(0, 167, 50);
+	--color-neutral: rgb(224, 165, 0);
+	--color-negative: rgba(200, 0, 0, 1);
+	--color-greyed: rgb(92, 92, 92);
+}
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+}
+
+html {
+	color: rgb(255, 255, 255);
+}
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	background-color: rgb(26, 26, 26);
+	font-size: .8em;
+	width: 100vw;
+	height: 100vh;
+}
+
+#Wrap {
+	width: 700px;
+	margin: 10px auto;
+}

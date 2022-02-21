@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RatConsole": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)"
+    }
+  }
+}

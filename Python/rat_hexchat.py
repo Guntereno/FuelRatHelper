@@ -7,11 +7,11 @@ import hexchat
 import os
 import sys
 
+root_path = os.path.join(hexchat.get_info('configdir'), 'addons')
+
 # The script folder isn't necessarily in the search path when running through HexChat
 # So we need to add it to include our own modules below.
-root_path = os.path.join(hexchat.get_info("configdir"), "addons", "FuelRatHelper")
-if root_path not in sys.path:
-    sys.path.append(root_path)
+sys.path.append(os.path.join(root_path, 'rat_lib'))
 
 import rat_irc
 
