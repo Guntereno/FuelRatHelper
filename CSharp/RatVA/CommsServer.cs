@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace RatVA
 {
@@ -97,6 +98,9 @@ namespace RatVA
 				case "/case":
 					await HandlePostCase(request, response);
 					break;
+				case "/note":
+					await HandlePostNote(request, response);
+					break;
 				default:
 					await SendError(response, 404, "Endpoint not found!");
 					break;
@@ -120,28 +124,28 @@ namespace RatVA
 						break;
 				}
 
-				
+
 				if (requestPath == "/")
 				{
 					requestPath = "/index.htm";
 				}
-			
+
 				string httpRoot = Path.GetFullPath(s_httpRoot);
 				string resourcePath = httpRoot + requestPath;
 
-				if(!resourcePath.IsSubDirectoryOf(httpRoot))
+				if (!resourcePath.IsSubDirectoryOf(httpRoot))
 				{
 					throw new Exception("Invalid path!");
 				}
-				
-				if(!File.Exists(resourcePath))
+
+				if (!File.Exists(resourcePath))
 				{
 					throw new FileNotFoundException(resourcePath);
 				}
 
 				await SendFile(response, resourcePath);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				await SendError(response, 404, $"{e}");
 			}
@@ -191,6 +195,42 @@ namespace RatVA
 			await SendJson(response, "{\"status\": \"accepted\"}");
 		}
 
+		private static async Task HandlePostNote(HttpListenerRequest request, HttpListenerResponse response)
+		{
+			string json = ReadTextContent(request);
+			Console.WriteLine(json);
+
+			JObject jObject = JObject.Parse(json);
+
+			CaseData? referencedCase = null;
+			if (jObject.TryGetValue("case", out JToken? value))
+			{
+				int caseId = (int)value;
+
+				s_mutex.WaitOne();
+				string? note =
+					(jObject.ContainsKey("note") && (jObject["note"] != null)) ?
+						jObject["note"]?.ToString() :
+						null;
+
+				referencedCase = s_cases.ContainsKey(caseId) ? s_cases[caseId] : null;
+				if ((referencedCase != null) && (note != null))
+				{
+					referencedCase.AddNote(note);
+				}
+				s_mutex.ReleaseMutex();
+			}
+
+			if (referencedCase != null)
+			{
+				await SendJson(response, JsonConvert.SerializeObject(referencedCase));
+			}
+			else
+			{
+				await SendError(response, 404, "Case not found!");
+			}
+		}
+
 		private static async Task HandleDeleteCase(HttpListenerRequest request, HttpListenerResponse response)
 		{
 			bool foundResource = false;
@@ -199,7 +239,7 @@ namespace RatVA
 			Console.WriteLine(json);
 
 			JObject jObject = JObject.Parse(json);
-			if(jObject.TryGetValue("case", out JToken? value))
+			if (jObject.TryGetValue("case", out JToken? value))
 			{
 				int caseId = (int)value;
 
@@ -212,7 +252,7 @@ namespace RatVA
 				s_mutex.ReleaseMutex();
 			}
 
-			if(foundResource)
+			if (foundResource)
 			{
 				await SendJson(response, "{\"status\": \"deleted\"}");
 			}
@@ -249,10 +289,31 @@ namespace RatVA
 			{
 				CaseData caseData = entry.Value;
 				stringBuilder.Append("<tr>");
-				foreach (var property in properties)
+				foreach (PropertyInfo? property in properties)
 				{
 					var value = property.GetValue(caseData);
-					string valString = value == null ? "None" : value.ToString();
+
+					string valString;
+					if(value == null)
+					{
+						valString = "None";
+					}
+					else if(value is IEnumerable<string>)
+					{
+						var listBuilder = new StringBuilder();
+						listBuilder.Append("<ol>");
+						var strIter = (IEnumerable<string>)value;
+						foreach(string listItem in strIter)
+						{
+							listBuilder.Append($"<li>{listItem}</li>");
+						}
+						listBuilder.Append("</ol>");
+						valString = listBuilder.ToString();
+					}
+					else
+					{
+						valString = value.ToString();
+					}
 					stringBuilder.Append($"<td>{valString}</td>");
 				}
 				stringBuilder.Append("</tr>");
@@ -263,7 +324,6 @@ namespace RatVA
 
 		private static async Task HandlePatchCase(HttpListenerRequest request, HttpListenerResponse response)
 		{
-
 			string json = ReadTextContent(request);
 			Console.WriteLine(json);
 
@@ -275,30 +335,27 @@ namespace RatVA
 				int caseId = (int)value;
 
 				s_mutex.WaitOne();
-				referencedCase = s_cases[caseId];
+				referencedCase = s_cases.ContainsKey(caseId) ? s_cases[caseId] : null;
 				if (referencedCase != null)
 				{
 					{
-						string? system = jObject["system"]?.ToString();
-						if (system != null)
+						if(jObject.ContainsKey("system"))
 						{
-							referencedCase.System = system;
+							referencedCase.System = jObject["system"]?.ToString();
 						}
 					}
 
 					{
-						string? desc = jObject["desc"]?.ToString();
-						if (desc != null)
+						if(jObject.ContainsKey("desc"))
 						{
-							referencedCase.Desc = desc;
+							referencedCase.Desc = jObject["sydescstem"]?.ToString();
 						}
 					}
 
 					{
-						string? client = jObject["client"]?.ToString();
-						if (client != null)
+						if (jObject.ContainsKey("client"))
 						{
-							referencedCase.Cmdr = client;
+							referencedCase.Cmdr = jObject["client"]?.ToString();
 						}
 					}
 				}

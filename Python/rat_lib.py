@@ -173,6 +173,23 @@ def parse_case_client_update(message):
 
     return result
 
+# Example of case note addition
+# ":Updated case #1 with \"im at noriega port with 3 mins on the oxygen depletion timer\"."
+
+_regex_case_note_added = re.compile(
+    u"""^:Updated case #(\d+?) with \\"(.+?)\\".$""")
+
+def parse_case_add_note(message):
+    match = re.search(_regex_case_note_added, message)
+    if match is None:
+        return None
+
+    result = {}
+    result["case"] = int(match.group(1))
+    result["note"] = match.group(2)
+
+    return result
+
 def main():
     num_signals = 0
     num_detected = 0

@@ -86,6 +86,11 @@ def handle_spatch_message(sender, recipient, message):
         rat_client.update_case(data)
         return
 
+    data = rat_lib.parse_case_add_note(message)
+    if data:
+        rat_client.add_note_to_case(data)
+        return
+
 
 def trigger_alert(case_data):
     platform = rat_config.get(_config_platform)

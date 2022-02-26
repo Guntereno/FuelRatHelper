@@ -1,5 +1,6 @@
 ﻿
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace RatVA
 {
@@ -41,5 +42,18 @@ namespace RatVA
 
 		[JsonProperty(propertyName: "signal")]
 		public string? Signal { get; set; }
+
+		[JsonProperty(propertyName: "notes")]
+		public List<string>? Notes { get; set; }
+
+		public void AddNote(string note)
+		{
+			if(Notes == null)
+			{
+				Notes = new List<string>();
+			}
+
+			Notes.Add(note);
+		}
 	}
 }

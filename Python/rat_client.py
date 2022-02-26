@@ -20,14 +20,21 @@ def delete_case(data):
     except:
         print("Failed to delete case!")
 
-def update_case(case_data):
+def update_case(data):
     try:
         r = requests.patch(
-            _server_url + f'/case', json=case_data)
+            _server_url + f'/case', json=data)
         print(r.text)
     except:
         print("Failed to patch case!")
 
+def add_note_to_case(data):
+    try:
+        r = requests.post(
+            _server_url + f'/note', json=data)
+        print(r.text)
+    except:
+        print("Failed to post note!")
 
 def main():
     for num in range(0, 20):
