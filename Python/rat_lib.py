@@ -141,6 +141,7 @@ def parse_case_close(message):
 
 _regex_case_system_updated = re.compile(
     u"""^:System for case #(\d+?) \((.+?)\) has been changed to \\"(.+?)\\"\\u001d \((.+?)\)\\u001d$""")
+
 def parse_case_system_update(message):
     match = re.search(_regex_case_system_updated, message)
     if match is None:
@@ -151,6 +152,24 @@ def parse_case_system_update(message):
     result["client"] = match.group(2)
     result["system"] = match.group(3)
     result["desc"] = match.group(4)
+
+    return result
+
+
+# Example of client name update
+# ":Client name for case #9 (Discount Shoper) has been changed to: DiscountShopper."
+
+_regex_case_client_updated = re.compile(
+    u"""^:Client name for case #(\d+?) \((.+?)\) has been changed to: (.+?)\.$""")
+
+def parse_case_client_update(message):
+    match = re.search(_regex_case_client_updated, message)
+    if match is None:
+        return None
+
+    result = {}
+    result["case"] = int(match.group(1))
+    result["client"] = match.group(3)
 
     return result
 

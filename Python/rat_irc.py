@@ -81,6 +81,11 @@ def handle_spatch_message(sender, recipient, message):
         rat_client.update_case(data)
         return
 
+    data = rat_lib.parse_case_client_update(message)
+    if data:
+        rat_client.update_case(data)
+        return
+
 
 def trigger_alert(case_data):
     platform = rat_config.get(_config_platform)
@@ -230,6 +235,6 @@ if __name__ == "__main__":
                 if msg is not None:
                     handle_message(msg['sender'], msg['recipient'], msg['message'])
                     print(msg['message'])
-                    time.sleep(0.1)
+                    time.sleep(0.02)
             except:
                 continue

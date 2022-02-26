@@ -278,16 +278,28 @@ namespace RatVA
 				referencedCase = s_cases[caseId];
 				if (referencedCase != null)
 				{
-					string? system = jObject["system"]?.ToString();
-					if (system != null)
 					{
-						referencedCase.Nick = system;
+						string? system = jObject["system"]?.ToString();
+						if (system != null)
+						{
+							referencedCase.System = system;
+						}
 					}
 
-					string? desc = jObject["desc"]?.ToString();
-					if (system != null)
 					{
-						referencedCase.Desc = system;
+						string? desc = jObject["desc"]?.ToString();
+						if (desc != null)
+						{
+							referencedCase.Desc = desc;
+						}
+					}
+
+					{
+						string? client = jObject["client"]?.ToString();
+						if (client != null)
+						{
+							referencedCase.Cmdr = client;
+						}
 					}
 				}
 				s_mutex.ReleaseMutex();
