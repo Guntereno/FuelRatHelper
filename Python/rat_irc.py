@@ -65,15 +65,20 @@ def handle_spatch_message(sender, recipient, message):
         {"sender": sender, "recipient": recipient, "message": message})
     rat_lib.append_to_log(event_json)
 
-    case_data = rat_lib.parse_ratsignal(message)
-    if case_data:
-        trigger_alert(case_data)
-        rat_client.send_case_data(case_data)
+    data = rat_lib.parse_ratsignal(message)
+    if data:
+        trigger_alert(data)
+        rat_client.send_case_data(data)
         return
 
-    case_data = rat_lib.parse_case_close(message)
-    if case_data:
-        rat_client.delete_case(case_data)
+    data = rat_lib.parse_case_close(message)
+    if data:
+        rat_client.delete_case(data)
+        return
+
+    data = rat_lib.parse_case_system_update(message)
+    if data:
+        rat_client.update_case(data)
         return
 
 

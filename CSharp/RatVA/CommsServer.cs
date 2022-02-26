@@ -81,6 +81,9 @@ namespace RatVA
 					case "DELETE":
 						await HandleDelete(request, response);
 						break;
+					case "PATCH":
+						await HandlePatch(request, response);
+						break;
 				}
 
 				response.Close();
@@ -150,6 +153,19 @@ namespace RatVA
 			{
 				case "/case":
 					await HandleDeleteCase(request, response);
+					break;
+				default:
+					await SendError(response, 404, "Endpoint not found!");
+					break;
+			}
+		}
+
+		private static async Task HandlePatch(HttpListenerRequest request, HttpListenerResponse response)
+		{
+			switch (request.Url.AbsolutePath)
+			{
+				case "/case":
+					await HandlePatchCase(request, response);
 					break;
 				default:
 					await SendError(response, 404, "Endpoint not found!");
@@ -244,6 +260,49 @@ namespace RatVA
 
 			await SendHtml(response, stringBuilder.ToString());
 		}
+
+		private static async Task HandlePatchCase(HttpListenerRequest request, HttpListenerResponse response)
+		{
+
+			string json = ReadTextContent(request);
+			Console.WriteLine(json);
+
+			JObject jObject = JObject.Parse(json);
+
+			CaseData? referencedCase = null;
+			if (jObject.TryGetValue("case", out JToken? value))
+			{
+				int caseId = (int)value;
+
+				s_mutex.WaitOne();
+				referencedCase = s_cases[caseId];
+				if (referencedCase != null)
+				{
+					string? system = jObject["system"]?.ToString();
+					if (system != null)
+					{
+						referencedCase.Nick = system;
+					}
+
+					string? desc = jObject["desc"]?.ToString();
+					if (system != null)
+					{
+						referencedCase.Desc = system;
+					}
+				}
+				s_mutex.ReleaseMutex();
+			}
+
+			if (referencedCase != null)
+			{
+				await SendJson(response, JsonConvert.SerializeObject(referencedCase));
+			}
+			else
+			{
+				await SendError(response, 404, "Case not found!");
+			}
+		}
+
 
 		private static async Task SendHtml(HttpListenerResponse response, string content)
 		{

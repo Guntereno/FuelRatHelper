@@ -4,21 +4,29 @@ import time
 _server_url = 'http://localhost:8000'
 
 
-def send_case_data(case_data):
+def send_case_data(data):
     try:
         r = requests.post(
-            _server_url + '/case', json=case_data)
+            _server_url + '/case', json=data)
         print(r.text)
     except:
         print("Failed to post case!")
 
-def delete_case(case_data):
+def delete_case(data):
     try:
         r = requests.delete(
-            _server_url + f'/case', json=case_data)
+            _server_url + f'/case', json=data)
         print(r.text)
     except:
         print("Failed to delete case!")
+
+def update_case(case_data):
+    try:
+        r = requests.patch(
+            _server_url + f'/case', json=case_data)
+        print(r.text)
+    except:
+        print("Failed to patch case!")
 
 
 def main():

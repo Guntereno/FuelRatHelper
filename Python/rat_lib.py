@@ -136,6 +136,24 @@ def parse_case_close(message):
     return result
 
 
+# Example of system update
+# ":System for case #8 (Merickder) has been changed to \"ARIETIS SECTOR WK-V A3-0\"\u001d (Brown dwarf 204.3 LY from Maia)\u001d"
+
+_regex_case_system_updated = re.compile(
+    u"""^:System for case #(\d+?) \((.+?)\) has been changed to \\"(.+?)\\"\\u001d \((.+?)\)\\u001d$""")
+def parse_case_system_update(message):
+    match = re.search(_regex_case_system_updated, message)
+    if match is None:
+        return None
+
+    result = {}
+    result["case"] = int(match.group(1))
+    result["client"] = match.group(2)
+    result["system"] = match.group(3)
+    result["desc"] = match.group(4)
+
+    return result
+
 def main():
     num_signals = 0
     num_detected = 0
