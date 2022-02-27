@@ -68,7 +68,7 @@ def handle_spatch_message(sender, recipient, message):
     data = rat_lib.parse_ratsignal(message)
     if data:
         trigger_alert(data)
-        rat_client.send_case_data(data)
+        rat_client.post_case(data)
         return
 
     data = rat_lib.parse_case_close(message)
@@ -78,17 +78,27 @@ def handle_spatch_message(sender, recipient, message):
 
     data = rat_lib.parse_case_system_update(message)
     if data:
-        rat_client.update_case(data)
+        rat_client.patch_case(data)
         return
 
     data = rat_lib.parse_case_client_update(message)
     if data:
-        rat_client.update_case(data)
+        rat_client.patch_case(data)
         return
 
     data = rat_lib.parse_case_add_note(message)
     if data:
-        rat_client.add_note_to_case(data)
+        rat_client.post_note(data)
+        return
+
+    data = rat_lib.parse_case_note_deleted(message)
+    if data:
+        rat_client.delete_note(data)
+        return
+
+    data = rat_lib.parse_case_note_modified(message)
+    if data:
+        rat_client.patch_note(data)
         return
 
 

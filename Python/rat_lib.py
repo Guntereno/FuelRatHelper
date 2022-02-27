@@ -190,6 +190,44 @@ def parse_case_add_note(message):
 
     return result
 
+
+# Example of note deletion
+# ":Deleted line 8 of case #2"
+
+_regex_case_note_deleted = re.compile(
+    u"""^:Deleted line (\d+?) of case #(\d+?)$""")
+
+def parse_case_note_deleted(message):
+    match = re.search(_regex_case_note_deleted, message)
+    if match is None:
+        return None
+    
+    result = {}
+    result['case'] = int(match.group(2))
+    result['line'] = int(match.group(1))
+
+    return result
+
+
+# Example of note modification
+# ":Updated line 2 of case #9 with \"in between C star and a gas giant, might be C6\"."
+
+_regex_case_note_modified = re.compile(
+    u""":Updated line (\d+?) of case #(\d+?) with \\"(.+?)\\".""")
+
+def parse_case_note_modified(message):
+    match = re.search(_regex_case_note_modified, message)
+    if match is None:
+        return None
+    
+    result = {}
+    result['case'] = int(match.group(2))
+    result['line'] = int(match.group(1))
+    result['note'] = match.group(3)
+
+    return result
+
+
 def main():
     num_signals = 0
     num_detected = 0

@@ -14,6 +14,22 @@ namespace RatVA
 {
 	public static class CommsServer
 	{
+		private struct ResponseData
+		{
+			public int StatusCode;
+			public string MimeType;
+			public byte[] Data;
+
+			public async Task Send(HttpListenerResponse response)
+			{
+				response.ContentType = MimeType;
+				response.ContentEncoding = Encoding.UTF8;
+				response.ContentLength64 = Data.LongLength;
+
+				await response.OutputStream.WriteAsync(Data, 0, Data.Length);
+			}
+		}
+
 		private static HttpListener? s_listener;
 		private const string s_url = "http://localhost:8000/";
 		private static bool s_serverRunning = false;
@@ -71,43 +87,68 @@ namespace RatVA
 				Console.WriteLine(request.UserAgent);
 				Console.WriteLine();
 
+				ResponseData responseData;
 				switch (request.HttpMethod)
 				{
 					case "POST":
-						await HandlePost(request, response);
-						break;
+						{
+							responseData = HandlePost(request);
+							break;
+						}
+
 					case "GET":
-						await HandleGet(request, response);
-						break;
+						{
+							responseData = HandleGet(request);
+							break;
+						}
+
 					case "DELETE":
-						await HandleDelete(request, response);
-						break;
+						{
+							responseData = HandleDelete(request);
+							break;
+						}
+
 					case "PATCH":
-						await HandlePatch(request, response);
-						break;
+						{
+							responseData = HandlePatch(request);
+							break;
+						}
+
+					default:
+						{
+							responseData = CreateErrorResponseData(404, "Endpoint not found!");
+							break;
+						}
 				}
+
+				await responseData.Send(response);
 
 				response.Close();
 			}
 		}
 
-		private static async Task HandlePost(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandlePost(HttpListenerRequest request)
 		{
 			switch (request.Url.AbsolutePath)
 			{
 				case "/case":
-					await HandlePostCase(request, response);
-					break;
+					{
+						return HandlePostCase(request);
+					}
+
 				case "/note":
-					await HandlePostNote(request, response);
-					break;
+					{
+						return HandlePostNote(request);
+					}
+
 				default:
-					await SendError(response, 404, "Endpoint not found!");
-					break;
+					{
+						return CreateErrorResponseData(404, "Endpoint not found!");
+					}
 			}
 		}
 
-		private static async Task HandleGet(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandleGet(HttpListenerRequest request)
 		{
 			try
 			{
@@ -116,14 +157,14 @@ namespace RatVA
 				switch (requestPath)
 				{
 					case "/cases":
-						await SendCases(response);
-						return;
+						{
+							return BuildCasesResponse();
+						}
 
 					default:
-						// Do nothing;
+						// Continue
 						break;
 				}
-
 
 				if (requestPath == "/")
 				{
@@ -135,7 +176,7 @@ namespace RatVA
 
 				if (!resourcePath.IsSubDirectoryOf(httpRoot))
 				{
-					throw new Exception("Invalid path!");
+					return CreateErrorResponseData(404, "Endpoint not found!");
 				}
 
 				if (!File.Exists(resourcePath))
@@ -143,41 +184,53 @@ namespace RatVA
 					throw new FileNotFoundException(resourcePath);
 				}
 
-				await SendFile(response, resourcePath);
+				return CreateFileResponseData(resourcePath);
 			}
 			catch (Exception e)
 			{
-				await SendError(response, 404, $"{e}");
+				return CreateErrorResponseData(404, $"{e}");
 			}
 		}
 
-		private static async Task HandleDelete(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandleDelete(HttpListenerRequest request)
 		{
 			switch (request.Url.AbsolutePath)
 			{
 				case "/case":
-					await HandleDeleteCase(request, response);
-					break;
+					{
+						return HandleDeleteCase(request);
+					}
+				case "/note":
+					{
+						return HandleDeleteNote(request);
+					}
 				default:
-					await SendError(response, 404, "Endpoint not found!");
-					break;
+					{
+						return CreateErrorResponseData(404, "Endpoint not found!");
+					}
 			}
 		}
 
-		private static async Task HandlePatch(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandlePatch(HttpListenerRequest request)
 		{
 			switch (request.Url.AbsolutePath)
 			{
 				case "/case":
-					await HandlePatchCase(request, response);
-					break;
+					{
+						return HandlePatchCase(request);
+					}
+				case "/note":
+					{
+						return HandlePatchNote(request);
+					}
 				default:
-					await SendError(response, 404, "Endpoint not found!");
-					break;
+					{
+						return CreateErrorResponseData(404, "Endpoint not found!");
+					}
 			}
 		}
 
-		private static async Task HandlePostCase(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandlePostCase(HttpListenerRequest request)
 		{
 			string json = ReadTextContent(request);
 			Console.WriteLine(json);
@@ -185,53 +238,17 @@ namespace RatVA
 
 			if (caseData == null)
 			{
-				return;
+				return CreateErrorResponseData(400, "Invalid request!");
 			}
 
 			s_mutex.WaitOne();
 			s_cases[caseData.Case] = caseData;
 			s_mutex.ReleaseMutex();
 
-			await SendJson(response, "{\"status\": \"accepted\"}");
+			return CreateJsonResponseData("{\"status\": \"accepted\"}");
 		}
 
-		private static async Task HandlePostNote(HttpListenerRequest request, HttpListenerResponse response)
-		{
-			string json = ReadTextContent(request);
-			Console.WriteLine(json);
-
-			JObject jObject = JObject.Parse(json);
-
-			CaseData? referencedCase = null;
-			if (jObject.TryGetValue("case", out JToken? value))
-			{
-				int caseId = (int)value;
-
-				s_mutex.WaitOne();
-				string? note =
-					(jObject.ContainsKey("note") && (jObject["note"] != null)) ?
-						jObject["note"]?.ToString() :
-						null;
-
-				referencedCase = s_cases.ContainsKey(caseId) ? s_cases[caseId] : null;
-				if ((referencedCase != null) && (note != null))
-				{
-					referencedCase.AddNote(note);
-				}
-				s_mutex.ReleaseMutex();
-			}
-
-			if (referencedCase != null)
-			{
-				await SendJson(response, JsonConvert.SerializeObject(referencedCase));
-			}
-			else
-			{
-				await SendError(response, 404, "Case not found!");
-			}
-		}
-
-		private static async Task HandleDeleteCase(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandleDeleteCase(HttpListenerRequest request)
 		{
 			bool foundResource = false;
 
@@ -254,21 +271,143 @@ namespace RatVA
 
 			if (foundResource)
 			{
-				await SendJson(response, "{\"status\": \"deleted\"}");
+				return CreateJsonResponseData("{\"status\": \"deleted\"}");
 			}
 			else
 			{
-				await SendError(response, 404, "Endpoint not found!");
+				return CreateErrorResponseData(404, "Endpoint not found!");
 			}
 		}
 
-		private static async Task SendError(HttpListenerResponse response, int statusCode, string message)
+		private static ResponseData HandlePostNote(HttpListenerRequest request)
 		{
-			response.StatusCode = statusCode;
-			await SendPlainText(response, message);
+			return ModifyCase(request, (caseData, requestData) =>
+			{
+				string? note = GetRequestString(requestData, "note");
+				if (note != null)
+				{
+					caseData.AddNote(note);
+					return CreateJsonResponseData(JsonConvert.SerializeObject(caseData));
+				}
+				else
+				{
+					return CreateErrorResponseData(400, "No note specified!");
+				}
+			});
 		}
 
-		private static async Task SendCases(HttpListenerResponse response)
+		private static ResponseData HandlePatchNote(HttpListenerRequest request)
+		{
+			return ModifyCase(request, (caseData, requestData) =>
+			{
+				string? note = GetRequestString(requestData, "note");
+				int? line = GetRequestInt(requestData, "line");
+
+				if((note != null) && (line != null))
+				{
+					int lineIndex = GetLineIndex((int)line);
+					if ((lineIndex >= 0) && (lineIndex < caseData.Notes?.Count))
+					{
+						caseData.Notes[lineIndex] = (string)note;
+						return CreateJsonResponseData(JsonConvert.SerializeObject(caseData));
+					}
+					else
+					{
+						return CreateErrorResponseData(404, "Invalid note line!");
+					}
+				}
+				else
+				{
+					return CreateErrorResponseData(400, "Invalid request!");
+				}
+			});
+		}
+
+		private static int GetLineIndex(int line)
+		{
+			// Line numbers reported by MechaSqueak are 1 indexed.
+			return line - 1;
+		}
+
+		private static ResponseData HandleDeleteNote(HttpListenerRequest request)
+		{
+			return ModifyCase(request, (caseData, requestData) =>
+			{
+				int? line = GetRequestInt(requestData, "line");
+
+				if (line != null)
+				{
+					int lineIndex = GetLineIndex((int)line);
+					if ((lineIndex >= 0) && (lineIndex < caseData.Notes?.Count))
+					{
+						caseData.Notes.RemoveAt((int)lineIndex);
+						return CreateJsonResponseData(JsonConvert.SerializeObject(caseData));
+					}
+					else
+					{
+						return CreateErrorResponseData(404, "Invalid note line!");
+					}
+				}
+				else
+				{
+					return CreateErrorResponseData(400, "Invalid request!");
+				}
+			});
+		}
+
+		private static string? GetRequestString(JObject requestData, string key)
+		{
+			return (requestData.ContainsKey(key) && (requestData[key] != null)) ?
+					requestData[key]?.ToString() :
+					null;
+		}
+
+		private static int? GetRequestInt(JObject requestData, string key)
+		{
+			return (requestData.ContainsKey(key) && (requestData[key] != null)) ?
+					requestData[key]?.ToObject<int>() :
+					null;
+		}
+
+		private static ResponseData ModifyCase(
+			HttpListenerRequest request,
+			Func<CaseData, JObject, ResponseData> callBack)
+		{
+			string json = ReadTextContent(request);
+			Console.WriteLine(json);
+
+			JObject requestData = JObject.Parse(json);
+
+			CaseData? referencedCase = null;
+			ResponseData response;
+			int? caseId = GetRequestInt(requestData, "case"); 
+
+			if (caseId != null)
+			{
+				s_mutex.WaitOne();
+
+				referencedCase = s_cases.ContainsKey((int)caseId) ? s_cases[(int)caseId] : null;
+
+				if (referencedCase != null)
+				{
+					response = callBack(referencedCase, requestData);
+				}
+				else
+				{
+					response = CreateErrorResponseData(404, "Case not found!");
+				}
+
+				s_mutex.ReleaseMutex();
+			}
+			else
+			{
+				response = CreateErrorResponseData(400, "Case not spcified!");
+			}
+
+			return response;
+		}
+
+		private static ResponseData BuildCasesResponse()
 		{
 			string disableSubmit = !s_serverRunning ? "disabled" : "";
 
@@ -294,16 +433,16 @@ namespace RatVA
 					var value = property.GetValue(caseData);
 
 					string valString;
-					if(value == null)
+					if (value == null)
 					{
 						valString = "None";
 					}
-					else if(value is IEnumerable<string>)
+					else if (value is IEnumerable<string>)
 					{
 						var listBuilder = new StringBuilder();
 						listBuilder.Append("<ol>");
 						var strIter = (IEnumerable<string>)value;
-						foreach(string listItem in strIter)
+						foreach (string listItem in strIter)
 						{
 							listBuilder.Append($"<li>{listItem}</li>");
 						}
@@ -319,82 +458,68 @@ namespace RatVA
 				stringBuilder.Append("</tr>");
 			}
 
-			await SendHtml(response, stringBuilder.ToString());
+			return CreateHtmlResponseData(stringBuilder.ToString());
 		}
 
-		private static async Task HandlePatchCase(HttpListenerRequest request, HttpListenerResponse response)
+		private static ResponseData HandlePatchCase(HttpListenerRequest request)
 		{
-			string json = ReadTextContent(request);
-			Console.WriteLine(json);
-
-			JObject jObject = JObject.Parse(json);
-
-			CaseData? referencedCase = null;
-			if (jObject.TryGetValue("case", out JToken? value))
+			return ModifyCase(request, (caseData, requestData) =>
 			{
-				int caseId = (int)value;
-
-				s_mutex.WaitOne();
-				referencedCase = s_cases.ContainsKey(caseId) ? s_cases[caseId] : null;
-				if (referencedCase != null)
 				{
+					if (requestData.ContainsKey("system"))
 					{
-						if(jObject.ContainsKey("system"))
-						{
-							referencedCase.System = jObject["system"]?.ToString();
-						}
-					}
-
-					{
-						if(jObject.ContainsKey("desc"))
-						{
-							referencedCase.Desc = jObject["sydescstem"]?.ToString();
-						}
-					}
-
-					{
-						if (jObject.ContainsKey("client"))
-						{
-							referencedCase.Cmdr = jObject["client"]?.ToString();
-						}
+						caseData.System = requestData["system"]?.ToString();
 					}
 				}
-				s_mutex.ReleaseMutex();
-			}
 
-			if (referencedCase != null)
-			{
-				await SendJson(response, JsonConvert.SerializeObject(referencedCase));
-			}
-			else
-			{
-				await SendError(response, 404, "Case not found!");
-			}
+				{
+					if (requestData.ContainsKey("desc"))
+					{
+						caseData.Desc = requestData["sydescstem"]?.ToString();
+					}
+				}
+
+				{
+					if (requestData.ContainsKey("client"))
+					{
+						caseData.Cmdr = requestData["client"]?.ToString();
+					}
+				}
+
+				return CreateJsonResponseData(JsonConvert.SerializeObject(caseData));
+			});
 		}
 
 
-		private static async Task SendHtml(HttpListenerResponse response, string content)
+		private static ResponseData CreateErrorResponseData(int statusCode, string message)
 		{
-			await SendText(response, "text/html", content);
+			ResponseData data = CreatePlainTextResponseData(message);
+			data.StatusCode = statusCode;
+			return data;
 		}
 
-		private static async Task SendJson(HttpListenerResponse response, string content)
+		private static ResponseData CreateHtmlResponseData(string content)
 		{
-			await SendText(response, "text/json", content);
+			return CreateTextResponseData("text/html", content);
 		}
 
-		private static async Task SendPlainText(HttpListenerResponse response, string content)
+		private static ResponseData CreateJsonResponseData(string content)
 		{
-			await SendText(response, "text/plain", content);
+			return CreateTextResponseData("text/json", content);
 		}
 
-		private static async Task SendText(HttpListenerResponse response, string mimeType, string content)
+		private static ResponseData CreatePlainTextResponseData(string content)
+		{
+			return CreateTextResponseData("text/plain", content);
+		}
+
+		private static ResponseData CreateTextResponseData(string mimeType, string content)
 		{
 			byte[] contentBytes = Encoding.UTF8.GetBytes(content);
-			await SendData(response, mimeType, contentBytes);
+			return CreateResponseData(mimeType, contentBytes);
 		}
 
-		private static async Task SendFile(HttpListenerResponse response, string filePath)
+		private static ResponseData CreateFileResponseData(string filePath)
 		{
 			FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
 			byte[] data = new byte[fileStream.Length];
@@ -407,7 +532,17 @@ namespace RatVA
 				throw new Exception($"Couldn't establish MIME type for file '{filePath}'!");
 			}
 
-			await SendData(response, mimeType, data);
+			return CreateResponseData(mimeType, data);
+		}
+
+		private static ResponseData CreateResponseData(string mimeType, byte[] data)
+		{
+			return new ResponseData
+			{
+				StatusCode = 200,
+				MimeType = mimeType,
+				Data = data
+			};
 		}
 
 		private static string? GetMimeType(string filePath)
@@ -423,15 +558,6 @@ namespace RatVA
 				default:
 					return null;
 			}
-		}
-
-		private static async Task SendData(HttpListenerResponse response, string mimeType, byte[] data)
-		{
-			response.ContentType = mimeType;
-			response.ContentEncoding = Encoding.UTF8;
-			response.ContentLength64 = data.LongLength;
-
-			await response.OutputStream.WriteAsync(data, 0, data.Length);
 		}
 
 		private static string ReadTextContent(HttpListenerRequest request)
