@@ -26,6 +26,7 @@ _config_alert_sound = 'alert_sound'
 
 _separator = "|"
 
+case_version_map = { "ODY": "ODYSSEY", "HOR": "HORIZONS" }
 
 def console_write(line):
     if(_console_write_callback != None):
@@ -109,8 +110,7 @@ def trigger_alert(case_data):
 
     game_version = rat_config.get(_config_game_version)
     if (game_version != "ALL"):
-        case_game_version = "ODYSSEY" if case_data["odyssey"] else "HORIZONS"
-        if (case_game_version != game_version):
+        if case_version_map[case_data["version"]] != game_version:
             return
 
     play_alert()
@@ -176,8 +176,8 @@ def handle_fr_platform(args):
         if len(args) < 2:
             raise Exception()
         platform = args[1].upper()
-        if platform in ["ALL", "PC", "XP", "PS4"]:
-            rat_config('platform', platform)
+        if platform in ["ALL", "PC", "XB", "PS4"]:
+            rat_config.set(_config_platform, platform)
             console_write("Platform now " + platform)
         else:
             console_write("Invalid platform '" + platform + "'")

@@ -12,14 +12,14 @@ copied to the clipboard.
 
 ### Installation
 
-Copy the files 'rat_lib.py', 'fuelrat_hexchat.py' and 'rat_client.py into the HexChat addons folder.
-(%AppData%\HexChat\addons)
+Run the install script with ```python install.py```. This will ensure the correct files are installed
+under the HexChat addons folder.
 
 ### Usage
 
-The system should be copied to the clipboard automatically whenever MechaSqeak fires
-up the ratsignal. There are a couple of commands which control the behaviour of the
-plugin:
+The requested info (by default, the system name) should be copied to the clipboard automatically
+whenever MechaSqeak fires up the ratsignal. There are a couple of commands which control the behaviour
+of the plugin:
 
 ```/fr_log <'true'/'false'>```: Enable or disable FuelRat helper logging.
 
@@ -29,7 +29,7 @@ plugin:
 
 ```/fr_sound <path>```: Set the file to use as an alert tone."
 
-```/fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>```: Set which version in which cases should trigger alerts."
+```/fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>```: Set which game version for which cases should trigger alerts."
 
 #### Logging
 
