@@ -16,8 +16,8 @@ namespace RatVA
 		[JsonProperty(propertyName: "code_red")]
 		public bool CodeRed { get; set; }
 
-		[JsonProperty(propertyName: "odyssey")]
-		public bool Odyssey { get; set; }
+		[JsonProperty(propertyName: "version")]
+		public string? Version { get; set; }
 
 		[JsonProperty(propertyName: "cmdr")]
 		public string? Cmdr { get; set; }
