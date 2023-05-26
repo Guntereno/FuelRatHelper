@@ -28,27 +28,27 @@ def append_to_log(line):
 
 
 # Examples of the standard ratsignal, fired after RatMama introduces a client via the website:
-# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #0\u0002 \u0002\u000306PC\u0003\u0002 \u2013 \u0002CMDR\u0002 KcalbDemon \u2013 \u0002System:\u0002 \"HEIDUMANI\"\u001d (\u0002M\u0002 Red dwarf 76 LY from Fuelum)\u001d \u2013 \u0002Language:\u0002 Italian (it) (PC_SIGNAL)
-# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #9\u0002 \u0002\u000306PC\u0003\u0002 (\u000307Odyssey\u0003) \u2013 \u0002CMDR\u0002 Towelie #0420 \u2013 \u0002System:\u0002 \"VELLI\"\u001d (\u0002M\u0002 Red dwarf 125.7 LY from Fuelum)\u001d \u2013 \u0002Language:\u0002 English (United Kingdom) (en-GB) \u2013 \u0002Nick:\u0002 Towelie_0420 (PC_SIGNAL)
-# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #7\u0002 \u0002\u000306PC\u0003\u0002 \u2013 \u0002CMDR\u0002 ADIllustration \u2013 \u0002System:\u0002 \"OTEGINE\"\u001d (Brown dwarf 33.7 LY from Fuelum)\u001d \u000307(Pilots' Federation District Permit Required)\u0003 \u2013 \u0002Language:\u0002 English (United States) (en-US) (PC_SIGNAL)
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #3\u0002 \u0002\u000303Xbox\u0003\u0002 \u2013 \u0002CMDR\u0002 Ghost ZO\u000309 (In game, location hidden)\u0003 \u2013 \u0002System:\u0002 \"HYADES SECTOR KN-Z A1-4\"\u001d (Brown dwarf 134.5 LY from Maia)\u001d \u2013 \u0002Language:\u0002 English (United States) (en-US) \u2013 \u0002Nick:\u0002 Ghost_ZO (XB_SIGNAL)
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #5\u0002 \u0002\u000306PC\u0003\u0002 (\u000304Code Red\u0003) (\u000307Odyssey\u0003) \u2013 \u0002CMDR\u0002 JHAFERLAND \u2013 \u0002System:\u0002 \"COL 285 SECTOR QA-K B23-9\"\u001d (Brown dwarf 140.1 LY from Fuelum)\u001d \u2013 \u0002Language:\u0002 Spanish (Mexico) (es-MX) (PC_SIGNAL)
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #7\u0002 \u0002\u000306PC\u0003\u0002 \u000311HOR\u0003 (\u000304Code Red\u0003) \u2013 \u0002CMDR\u0002 Kerr1x \u2013 \u0002System:\u0002 \"APOYOTA\"\u001d (\u0002M\u0002 Red dwarf 70.1 LY from Sol)\u001d \u2013 \u0002Language:\u0002 Ukrainian (Ukraine) (uk-UA) (HOR_SIGNAL)
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #3\u0002 \u0002\u000306PC\u0003\u0002 \u000307ODY\u0003 \u2013 \u0002CMDR\u0002 Jack Lambert \u2013 \u0002System:\u0002 \"HIP 25376\"\u001d (\u0002F\u0002 Yellow-white star 139.5 LY from Fuelum)\u001d \u2013 \u0002Language:\u0002 German (Germany) (de-DE) \u2013 \u0002Nick:\u0002 Jack_Lambert (ODY_SIGNAL)
+# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #1\u0002 \u0002\u000306PC\u0003\u0002 \u000311HOR\u0003 (\u000304Code Red\u0003) \u2013 \u0002CMDR\u0002 Drochila354 \u2013 \u0002System:\u0002 \"ALRAI SECTOR LC-V B2-4\"\u001d (\u0002M\u0002 Red dwarf 79.5 LY from Sol)\u001d \u2013 \u0002Language:\u0002 Russian (Russia) (ru-RU) (HOR_SIGNAL)
+# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #1\u0002 \u0002\u000306PC\u0003\u0002 \u000313LEG\u0003 (\u000304Code Red\u0003) \u2013 \u0002CMDR\u0002 czarmulak \u2013 \u0002System:\u0002 \"EARTH EXPEDITIONARY FLEET\"\u001d (\u0002F\u0002 Yellow-white star 55 LY from Rodentia)\u001d \u2013 \u0002Language:\u0002 Polish (Poland) (pl-PL) (LEG_SIGNAL)
+# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #1\u0002 \u0002\u000306PC\u0003\u0002 \u000313LEG\u0003 \u2013 \u0002CMDR\u0002 expertcheat \u2013 \u0002System:\u0002 \"JEIDENANNSA\"\u001d (\u0002F\u0002 Yellow-white star 182.1 LY from Sol)\u001d \u2013 \u0002Language:\u0002 Russian (ru) (LEG_SIGNAL)
 _regex_standard = re.compile(
     u"""^:\u0002\u000300,07RATSIGNAL\u0003\u0002 """
-    u"""Case\u0002 #(.+?)\u0002 """							# Case number
-    u"""\u0002\u0003\d\d(.+?)\u0003\u0002 """				# Platform
-    u"""(\u000311HOR\u0003 |\u000307ODY\u0003 )?"""			# Version
-    u"""(\(\u000304Code Red\u0003\) )?"""					# Code Red (optional)
-    u"""\u2013 \u0002CMDR\u0002 (.+?)\u2013 """				# CMDR name
-    u"""\u0002System:\u0002 \"(.+?)\"\u001d """				# System name
-    u"""\((.+?)\)\u001d """									# System desc
-    u"""(?:\u000307\((.+?)\)\u0003 )?"""					# Permit (optional)
-    u"""\u2013 \u0002Language:\u0002 (.+?(?: \(.+?\))?) """	# Language
-    u"""\((.+?)\) """										# Locale
-    u"""(?:\u2013 \u0002Nick:\u0002 (.*?) )?"""				# Nick (optional)
-    u"""\((.*?)\)$"""										# Signal
+    u"""Case\u0002 #(.+?)\u0002 """                                     # Case number
+    u"""\u0002\u0003\d\d(.+?)\u0003\u0002 """                           # Platform
+    u"""(?:\u0003\d\d(\w{3})\u0003 )?"""                                # Version
+    u"""(\(\u000304Code Red\u0003\) )?"""                               # Code Red (optional)
+    u"""\u2013 \u0002CMDR\u0002 (.+?)\u2013 """                         # CMDR name
+    u"""\u0002System:\u0002 \"(.+?)\"\u001d """                         # System name
+    u"""\((.+?)\)\u001d """                                             # System desc
+    u"""(?:\u000307\((.+?)\)\u0003 )?"""                                # Permit (optional)
+    u"""\u2013 \u0002Language:\u0002 (.+?(?: \(.+?\))?) """             # Language
+    u"""\((.+?)\) """                                                   # Locale
+    u"""(?:\u2013 \u0002Nick:\u0002 (.*?) )?"""                         # Nick (optional)
+    u"""\((.*?)\)$"""                                                   # Signal
 )
 
 
@@ -62,10 +62,7 @@ def parse_ratsignal_standard(message):
     result = {}
     result["case"] = int(match.group(1))
     result["platform"] = match.group(2)
-    result["version"] = None
-    version_match = match.group(3)
-    if version_match is not None:
-         result["version"] = version_match[3:6] # Remove the colour characters
+    result["version"] = match.group(3)
     result["code_red"] = match.group(4) is not None
     result["cmdr"] = match.group(5)
     result["system"] = match.group(6).upper()
@@ -237,37 +234,38 @@ def main():
     num_signals = 0
     num_detected = 0
 
-    if not os.path.exists(log_path()):
+    log_file = log_path()
+    print(f"Opening '{log_file}'")
+
+    if not os.path.exists(log_file):
         print("Log file doesn't exist. Exiting.")
         return
 
-    with open(log_path()) as fp:
+    with open(log_file) as fp:
         lines = fp.readlines()
         for line in lines:
-            wrote = False
-
             try:
                 irc_message = json.loads(line)
+            except json.JSONDecodeError:
+                # Do nothing
+                continue
 
-                message = irc_message["message"]
+            message = irc_message["message"]
 
-                if u"RATSIGNAL" in message:
-                    print(message)
-                    wrote = True
-                    num_signals += 1
+            if u"RATSIGNAL" in message:
+                print(message)
+                num_signals += 1
 
                 case_data = parse_ratsignal(message)
                 if case_data:
                     print(case_data)
-                    wrote = True
                     num_detected += 1
+                else:
+                    print(f"Failed to parse '{message}'")
 
-            except json.JSONDecodeError:
-                # Do nothing
-                break
-
-            if wrote:
                 print()
+
+
 
     print(f"Detected {num_detected}/{num_signals}")
 

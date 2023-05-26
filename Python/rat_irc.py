@@ -13,7 +13,7 @@ fr_log_usage = " /fr_log <'true'/'false'>: Enable or disable FuelRat helper logg
 fr_clip_usage = " /fr_clip <'format'>: Specify format of clipped string (none to disable)\nc=casenum, s=systemname, n=clientname"
 fr_platform_usage = " /fr_platform <'ALL'/'PC'/'XB'/'PS4'>: Set platform for alerts."
 fr_sound_usage = " /fr_sound <path>: Set the file to use as an alert tone."
-fr_game_version_usage = " /fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>: Set which version in which cases should trigger alerts."
+fr_game_version_usage = " /fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'/'LEGACY'>: Set cases for which version should trigger alerts."
 
 _root_path = None
 _console_write_callback = None
@@ -26,7 +26,12 @@ _config_alert_sound = 'alert_sound'
 
 _separator = "|"
 
-case_version_map = { "ODY": "ODYSSEY", "HOR": "HORIZONS" }
+# The case data and the config file uses different formats for these
+_case_version_map = {
+    'HOR': 'HORIZONS',
+    'ODY': 'ODYSSEY',
+    'LEG': 'LEGACY'
+}
 
 def console_write(line):
     if(_console_write_callback != None):
@@ -108,10 +113,12 @@ def trigger_alert(case_data):
     if (platform != "ALL") and (case_data["platform"] != platform):
         return
 
-    game_version = rat_config.get(_config_game_version)
-    if (game_version != "ALL"):
-        if case_version_map[case_data["version"]] != game_version:
-            return
+    # Only PC cases should include a game version
+    if platform == "PC":
+        game_version = rat_config.get(_config_game_version)
+        if (game_version != "ALL"):
+            if _case_version_map[case_data["version"]] != game_version:
+                return
 
     play_alert()
 
@@ -209,7 +216,7 @@ def handle_fr_game_version(args):
         if len(args) < 2:
             raise Exception()
         game_version = args[1].upper()
-        if game_version in ["ALL", "HORIZONS", "ODYSSEY"]:
+        if game_version in ["ALL", "HORIZONS", "ODYSSEY", "LEGACY"]:
             rat_config.set(_config_game_version, game_version)
             console_write("Game version now " + game_version)
         else:
