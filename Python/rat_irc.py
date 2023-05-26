@@ -110,14 +110,14 @@ def handle_spatch_message(sender, recipient, message):
 
 def trigger_alert(case_data):
     platform = rat_config.get(_config_platform)
-    if (platform != "ALL") and (case_data["platform"] != platform):
+    if (platform != "ALL") and (case_data.get("platform") != platform):
         return
 
     # Only PC cases should include a game version
     if platform == "PC":
         game_version = rat_config.get(_config_game_version)
         if (game_version != "ALL"):
-            if _case_version_map[case_data["version"]] != game_version:
+            if _case_version_map.get(case_data.get("version")) != game_version:
                 return
 
     play_alert()
