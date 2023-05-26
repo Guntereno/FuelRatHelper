@@ -29,7 +29,7 @@ of the plugin:
 
 ```/fr_sound <path>```: Set the file to use as an alert tone."
 
-```/fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'>```: Set which game version for which cases should trigger alerts."
+```/fr_game_version <'ALL'/'HORIZONS'/'ODYSSEY'/'LEGACY'>```: Set which game version for which cases should trigger alerts. (Only relevant for PC platform.)"
 
 #### Logging
 
