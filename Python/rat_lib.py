@@ -35,20 +35,24 @@ def append_to_log(line):
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #1\u0002 \u0002\u000306PC\u0003\u0002 \u000311HOR\u0003 (\u000304Code Red\u0003) \u2013 \u0002CMDR\u0002 Drochila354 \u2013 \u0002System:\u0002 \"ALRAI SECTOR LC-V B2-4\"\u001d (\u0002M\u0002 Red dwarf 79.5 LY from Sol)\u001d \u2013 \u0002Language:\u0002 Russian (Russia) (ru-RU) (HOR_SIGNAL)
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #1\u0002 \u0002\u000306PC\u0003\u0002 \u000313LEG\u0003 (\u000304Code Red\u0003) \u2013 \u0002CMDR\u0002 czarmulak \u2013 \u0002System:\u0002 \"EARTH EXPEDITIONARY FLEET\"\u001d (\u0002F\u0002 Yellow-white star 55 LY from Rodentia)\u001d \u2013 \u0002Language:\u0002 Polish (Poland) (pl-PL) (LEG_SIGNAL)
 # :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #1\u0002 \u0002\u000306PC\u0003\u0002 \u000313LEG\u0003 \u2013 \u0002CMDR\u0002 expertcheat \u2013 \u0002System:\u0002 \"JEIDENANNSA\"\u001d (\u0002F\u0002 Yellow-white star 182.1 LY from Sol)\u001d \u2013 \u0002Language:\u0002 Russian (ru) (LEG_SIGNAL)
+# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #9\u0002 \u0002\u000306PC\u0003\u0002 \u000307ODY\u0003 \u2013 \u0002CMDR\u0002 DARKANGEL4645 \u2013 \u0002System:\u0002 \"HIP 19934\" \u26a0\ufe0f\u001d (\u0002K\u0002 Orange dwarf 171 LY from Sol)\u001d \u2013 \u0002Language:\u0002 English (South Africa) (en-ZA) (ODY_SIGNAL)
+# :\u0002\u000300,07RATSIGNAL\u0003\u0002 Case\u0002 #5\u0002 \u0002\u000306PC\u0003\u0002 \u000307ODY\u0003 \u2013 \u0002CMDR\u0002 Santa Madredetarasse \u2013 \u0002System:\u0002 \"NN 3281\" \u26a0\ufe0f\u001d (\u0002M\u0002 Red dwarf 171.7 LY from Sol)\u001d \u2013 \u0002Language:\u0002 French (France) (fr-FR) \u2013 \u0002Nick:\u0002 Santa_Madredetarasse (ODY_SIGNAL)
 _regex_standard = re.compile(
     u"""^:\u0002\u000300,07RATSIGNAL\u0003\u0002 """
-    u"""Case\u0002 #(.+?)\u0002 """                                     # Case number
-    u"""\u0002\u0003\d\d(.+?)\u0003\u0002 """                           # Platform
-    u"""(?:\u0003\d\d(\w{3})\u0003 )?"""                                # Version
-    u"""(\(\u000304Code Red\u0003\) )?"""                               # Code Red (optional)
-    u"""\u2013 \u0002CMDR\u0002 (.+?)\u2013 """                         # CMDR name
-    u"""\u0002System:\u0002 \"(.+?)\"\u001d """                         # System name
-    u"""\((.+?)\)\u001d """                                             # System desc
-    u"""(?:\u000307\((.+?)\)\u0003 )?"""                                # Permit (optional)
-    u"""\u2013 \u0002Language:\u0002 (.+?(?: \(.+?\))?) """             # Language
-    u"""\((.+?)\) """                                                   # Locale
-    u"""(?:\u2013 \u0002Nick:\u0002 (.*?) )?"""                         # Nick (optional)
-    u"""\((.*?)\)$"""                                                   # Signal
+    u"""Case\u0002 #(.+?)\u0002 """                         # Case number
+    u"""\u0002\u0003\d\d(.+?)\u0003\u0002 """               # Platform
+    u"""(?:\u0003\d\d(\w{3})\u0003 )?"""                    # Version
+    u"""(\(\u000304Code Red\u0003\) )?"""                   # Code Red (optional)
+    u"""\u2013 \u0002CMDR\u0002 (.+?)\u2013 """             # CMDR name
+    u"""\u0002System:\u0002 \"(.+?)\""""                    # System name
+    u"""( \u26a0\ufe0f)?"""                                 # Caution
+    u"""\u001d """                                          # Data Separator
+    u"""\((.+?)\)\u001d """                                 # System desc
+    u"""(?:\u000307\((.+?)\)\u0003 )?"""                    # Permit (optional)
+    u"""\u2013 \u0002Language:\u0002 (.+?(?: \(.+?\))?) """ # Language
+    u"""\((.+?)\) """                                       # Locale
+    u"""(?:\u2013 \u0002Nick:\u0002 (.*?) )?"""             # Nick (optional)
+    u"""\((.*?)\)$"""                                       # Signal
 )
 
 
@@ -66,12 +70,13 @@ def parse_ratsignal_standard(message):
     result["code_red"] = match.group(4) is not None
     result["cmdr"] = match.group(5)
     result["system"] = match.group(6).upper()
-    result["desc"] = match.group(7)
-    result["permit"] = match.group(8)
-    result["language"] = match.group(9)
-    result["locale"] = match.group(10)
-    result["nick"] = match.group(11)
-    result["signal"] = match.group(12)
+    result["caution"] = match.group(7) is not None
+    result["desc"] = match.group(8)
+    result["permit"] = match.group(9)
+    result["language"] = match.group(10)
+    result["locale"] = match.group(11)
+    result["nick"] = match.group(12)
+    result["signal"] = match.group(13)
 
     return result
 
